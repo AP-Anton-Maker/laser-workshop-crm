@@ -10,6 +10,7 @@ from typing import List, Optional
 from ..db.session import get_db
 from ..db.models import Order, Client
 from ..schemas.order import OrderCreate, OrderStatusUpdate, OrderResponse
+from ..services.calculator import SmartCalculator
 
 # Создаем роутеры
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
@@ -63,23 +64,42 @@ async def create_order(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Создание нового заказа.
-    Принимает параметры как словарь, сохраняет их как JSON строку.
+    Создание нового заказа с серверной проверкой цены.
     """
-    # Проверка существования клиента
+    # 1. Проверка существования клиента
     client_check = await db.get(Client, order_data.client_id)
     if not client_check:
         raise HTTPException(status_code=404, detail="Клиент не найден")
 
-    # Сериализация параметров в JSON строку для хранения в SQLite
+    # 2. СЕРВЕРНЫЙ РАСЧЕТ ЦЕНЫ
+    try:
+        calculated_price = SmartCalculator.calculate(
+            calc_type=order_data.calc_type,
+            base_price=order_data.server_base_price,
+            params=order_data.parameters
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка калькулятора: {str(e)}")
+
+    # 3. СРАВНЕНИЕ ЦЕН
+    # Допускаем погрешность в 2 рубля из-за различий округления на клиенте/сервере
+    if abs(calculated_price - order_data.total_price) > 2.0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Несоответствие цены! Клиент прислал: {order_data.total_price}, "
+                   f"Сервер рассчитал: {calculated_price}. Пожалуйста, обновите страницу."
+        )
+
+    # 4. Сериализация параметров и сохранение
     parameters_json = json.dumps(order_data.parameters, ensure_ascii=False)
 
-    # Создаем объект заказа
     new_order = Order(
         client_id=order_data.client_id,
         service_name=order_data.service_name,
         parameters=parameters_json,
-        total_price=order_data.total_price,
+        total_price=calculated_price, # Сохраняем ТОЛЬКО серверную цену!
         discount=order_data.discount,
         cashback_applied=order_data.cashback_applied,
         status=order_data.status.upper(),
@@ -90,51 +110,15 @@ async def create_order(
     await db.commit()
     await db.refresh(new_order)
     
-    # Подгружаем данные клиента для ответа
+    # Подготовка ответа
     await db.refresh(new_order, attribute_names=['client'])
     
     response_data = OrderResponse.model_validate(new_order)
     if new_order.client:
         response_data.client_name = new_order.client.name
     
-    # Возвращаем параметры уже как словарь
     try:
         response_data.parameters = json.loads(new_order.parameters)
-    except:
-        response_data.parameters = {}
-        
-    return response_data
-
-
-@action_router.post("/status", response_model=OrderResponse)
-async def update_order_status(
-    status_data: OrderStatusUpdate,
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Обновление статуса заказа.
-    """
-    # Проверяем существование заказа
-    order = await db.get(Order, status_data.order_id)
-    if not order:
-        raise HTTPException(status_code=404, detail="Заказ не найден")
-
-    # Обновляем статус и дату обновления
-    order.status = status_data.status.upper()
-    order.updated_at = datetime.utcnow()
-
-    await db.commit()
-    await db.refresh(order)
-    
-    # Подгружаем клиента для полного ответа
-    await db.refresh(order, attribute_names=['client'])
-    
-    response_data = OrderResponse.model_validate(order)
-    if order.client:
-        response_data.client_name = order.client.name
-        
-    try:
-        response_data.parameters = json.loads(order.parameters)
     except:
         response_data.parameters = {}
         
