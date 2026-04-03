@@ -17,6 +17,8 @@ class OrderBase(BaseModel):
 class OrderCreate(OrderBase):
     """Схема для создания нового заказа (данные от фронтенда)"""
     client_id: int = Field(..., description="ID клиента")
+    calc_type: str = Field(..., description="Тип калькулятора для проверки цены (fixed, area_cm2...)")
+    server_base_price: float = Field(..., description="Базовая ставка, использованная для расчета на клиенте")
     # parameters уже есть в базовом классе как Dict, при сохранении превратим в JSON строку
     
     model_config = ConfigDict(
