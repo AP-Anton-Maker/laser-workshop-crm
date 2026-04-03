@@ -1,98 +1,22 @@
-"""
-Точка входа FastAPI приложения Laser CRM.
-Настройка lifespan-событий для автоматического создания таблиц БД при запуске.
-"""
-from contextlib import asynccontextmanager
+# ... существующие импорты ...
 
-from fastapi import FastAPI
+# ДОБАВИТЬ импорт роутеров
+from .api.orders import router as orders_router
+from .api.orders import action_router as order_actions_router
 
-from db.session import init_db, close_db
-from db import models  # Импорт моделей для регистрации в metadata
+# ... внутри функции создания app ...
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Lifespan-менеджер для управления жизненным циклом приложения.
-    
-    При запуске:
-    - Инициализируется база данных (создаются таблицы)
-    
-    При остановке:
-    - Закрывается подключение к базе данных
-    """
-    # === ЗАПУСК ПРИЛОЖЕНИЯ ===
-    print("🚀 Запуск Laser CRM...")
-    print("📦 Инициализация базы данных...")
-    await init_db()
-    print("✅ База данных готова к работе!")
-    
-    yield  # Приложение работает
-    
-    # === ОСТАНОВКА ПРИЛОЖЕНИЯ ===
-    print("🛑 Остановка Laser CRM...")
-    await close_db()
-    print("✅ Подключение к базе данных закрыто.")
-
-
-# Создаём приложение FastAPI
 app = FastAPI(
-    title="Laser CRM API",
-    description="""
-## Система управления лазерной мастерской
-
-### Основные возможности:
-- 📋 **Управление заказами** - создание, редактирование, смена статусов
-- 👥 **Клиентская база** - сегментация, кэшбек-система, промокоды
-- 📦 **Складской учёт** - материалы, расходники, уведомления о минимуме
-- 💬 **VK интеграция** - чат с клиентами, уведомления о статусах
-- 📊 **Аналитика** - дашборды, отчёты, прогнозы
-
-### Роли пользователей:
-- **Admin** - полный доступ ко всем функциям
-- **Manager** - управление заказами и клиентами
-- **Master** - работа с заказами и складом
-    """,
+    title="Лазерная Мастерская CRM",
+    description="CRM система для управления заказами, клиентами и складом",
     version="1.0.0",
-    lifespan=lifespan,
+    lifespan=lifespan
 )
 
+# ... middleware CORS ...
 
-# ==================== ТЕСТОВЫЙ РОУТ ====================
+# ДОБАВИТЬ подключение роутеров
+app.include_router(orders_router)
+app.include_router(order_actions_router)
 
-@app.get("/api/ping")
-async def ping():
-    """
-    Тестовый эндпоинт для проверки работоспособности API.
-    
-    Возвращает:
-    - status: "ok" если сервер работает
-    - message: приветственное сообщение
-    """
-    return {
-        "status": "ok",
-        "message": "🔬 Laser CRM API работает!",
-        "version": "1.0.0"
-    }
-
-
-@app.get("/")
-async def root():
-    """
-    Корневой эндпоинт.
-    Перенаправляет на документацию Swagger UI.
-    """
-    return {
-        "message": "Добро пожаловать в Laser CRM API",
-        "docs": "/docs",
-        "redoc": "/redoc"
-    }
-
-
-# ==================== ПРИМЕР ЗАПУСКА ====================
-# Для запуска сервера выполните в терминале:
-# cd backend
-# uvicorn main:app --reload --host 0.0.0.0 --port 8000
-#
-# Документация API будет доступна по адресу:
-# http://localhost:8000/docs
+# ... остальной код ...
