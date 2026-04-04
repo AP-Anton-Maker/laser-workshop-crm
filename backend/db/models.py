@@ -93,7 +93,6 @@ class Order(Base):
 
 # ... остальные модели (User, Inventory, PromoCode, ChatMessage, AuditLog) остаются без изменений ...
 
-
 class Inventory(Base):
     """
     Модель складского учёта.
