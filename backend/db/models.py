@@ -137,3 +137,18 @@ class AuditLog(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="audit_logs")
+
+
+class SystemSettings(Base):
+    """
+    Глобальные настройки системы.
+    Предполагается наличие только одной записи с id=1.
+    """
+    __tablename__ = "system_settings"
+
+    id = Column(Integer, primary_key=True, default=1)
+    is_vacation_mode = Column(Boolean, default=False, nullable=False)
+    vacation_end_date = Column(String(50), nullable=True)  # Формат: "DD.MM.YYYY"
+    vacation_message = Column(Text, nullable=True)  # Текст автоответа для бота
+    
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
