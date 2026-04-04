@@ -88,12 +88,14 @@
                 </div>
             </header>
 
+            <!-- Контейнер предупреждений (Отпуск) -->
+            <div id="vacation-alert-box" class="alert alert-warning" style="display:none; margin: 1rem;"></div>
+
             <!-- Секции контента -->
             <div class="content-wrapper">
                 
                 <!-- Дашборд -->
                 <section id="dashboard-section" class="content-section active">
-                    <div id="vacation-alert-box" class="alert alert-danger" style="display:none; margin-bottom: 20px;"></div>
                     <div class="dashboard-grid">
                         <div class="card stat-card">
                             <h3>Выручка</h3>
@@ -129,7 +131,7 @@
                     <div class="card">
                         <div class="card-header">
                             <h3>Все заказы</h3>
-                            <button class="btn btn-primary" onclick="alert('Форма создания заказа (в разработке)')">+ Новый заказ</button>
+                            <button class="btn btn-primary" id="btn-new-order">+ Новый заказ</button>
                         </div>
                         <div class="table-container">
                             <table class="data-table">
@@ -215,10 +217,14 @@
                     </div>
                 </section>
 
-                <!-- Настройки -->
+                <!-- Настройки (включая Отпуск) -->
                 <section id="settings-section" class="content-section">
+                    <div id="vacation-settings-container">
+                        <!-- Рендеринг формы отпуска через JS -->
+                    </div>
+                    <br>
                     <div class="card">
-                        <h3>Системные настройки</h3>
+                        <h3>Экспорт и Бэкапы</h3>
                         <button class="btn btn-success" onclick="window.open('/api/system/backup/download', '_blank')">
                             📥 Скачать бэкап БД
                         </button>
