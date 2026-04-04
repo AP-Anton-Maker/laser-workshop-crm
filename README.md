@@ -1,170 +1,103 @@
-# 🛠️ CRM «Лазерная Мастерская»
+# 🔬 Laser CRM: Enterprise-система для лазерной мастерской
 
-Полнофункциональная, асинхронная Enterprise CRM-система, разработанная специально для соло-предпринимателей и мастерских лазерной резки. 
+[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com/)
+[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-red.svg)](https://www.sqlalchemy.org/)
+[![AI](https://img.shields.io/badge/AI-Scikit--Learn-orange.svg)](https://scikit-learn.org/)
+[![Platform](https://img.shields.io/badge/Platform-Raspberry%20Pi%203B%2B-green.svg)](https://www.raspberrypi.org/)
 
-Система работает автономно, требует минимум ресурсов и идеально подходит для запуска на мини-компьютерах (например, Raspberry Pi 3B+).
+**Laser CRM** — это высокопроизводительная, асинхронная CRM-система уровня Enterprise, разработанная специально для автоматизации работы соло-предпринимателя в сфере лазерной резки и гравировки. 
+
+Система объединяет полный цикл управления бизнесом: от точного расчета стоимости заказа (11 алгоритмов) и складского учета до интеграции с клиентами через ВКонтакте и прогнозирования выручки с помощью Искусственного Интеллекта. Архитектура проекта оптимизирована для работы на компактном оборудовании с ограниченными ресурсами (Raspberry Pi 3B+, Orange Pi, Mini PC) без использования тяжелых контейнеров Docker.
 
 ---
 
 ## ✨ Ключевые возможности
 
-- 🧮 **Умный калькулятор:** 11 алгоритмов расчета (по площади, периметру, времени, 3D-клише) с автоматическим учетом оптовых скидок.
-- 🤖 **Интеграция ВКонтакте (VKBottle):** Фоновый бот автоматически ловит сообщения, сохраняет их в CRM и позволяет отвечать прямо из интерфейса.
-- 🏖️ **Режим «Отпуск»:** Специальный тумблер. При включении бот отвечает клиентам заранее заданным сообщением с датой вашего возвращения.
-- 🧠 **AI-Аналитика (Scikit-learn):** Машинное обучение анализирует тренды за 30 дней и предсказывает завтрашнюю выручку.
-- 💰 **Система лояльности (LTV):** Начисление 5% кэшбека при статусе заказа "Выполнен", авто-присвоение статусов (Новый ➔ Постоянный ➔ VIP).
-- 📦 **Складской учет:** Отслеживание материалов с красными алертами на главном экране при падении остатков ниже минимума.
-- 🔒 **Безопасность:** JWT-авторизация (OAuth2), хэширование паролей, защищенные API-маршруты.
-- 💾 **Система бэкапов:** Скачивание дампа базы данных (SQLite) и экспорт таблиц в CSV (utf-8-sig для Excel) в один клик.
-
----
-
-## 🛠 Стек технологий
-
-**Backend:** Python 3.10+, FastAPI, SQLAlchemy (aiosqlite), VKBottle, Scikit-learn, PyJWT.
-**Frontend:** HTML5, CSS3 (Модульная архитектура), Vanilla JS, Chart.js.
+*   🧮 **Умный калькулятор:** Серверный расчет стоимости по **11 алгоритмам** (площадь, периметр, время, 3D и др.) с защитой от подмены цены и автоматическими оптовыми скидками.
+*   🤖 **VK-бот (VKBottle):** Полноценная интеграция с ВКонтакте. Бот сохраняет историю переписки в БД и позволяет менеджеру отвечать клиентам прямо из интерфейса CRM.
+*   🌴 **Режим "Отпуск":** Уникальная фича для соло-фаундеров. Включение тумблера в настройках заставляет бота автоматически отвечать клиентам кастомным сообщением о вашем отсутствии.
+*   📈 **AI-прогноз выручки:** Модуль на базе `scikit-learn` (Linear Regression) анализирует тренды последних 30 дней и предсказывает доход на завтрашний день.
+*   💎 **Система лояльности:** Автоматическое начисление **кэшбэка (5%)** при завершении заказа и динамическая сегментация клиентов (New, Regular, VIP) на основе LTV.
+*   🏭 **Складские алерты:** Контроль остатков материалов с автоматической подсветкой позиций, требующих срочной закупки (`low-stock`).
+*   💾 **Бэкапы и Экспорт:** Мгновенное создание резервных копий SQLite базы данных и выгрузка отчетов (заказы, клиенты) в формат CSV.
+*   🔒 **Безопасность:** JWT авторизация, хэширование паролей (bcrypt), строгая валидация данных через Pydantic.
 
 ---
 
 ## 📂 Структура проекта
 
-    laser_crm/
-    ├── backend/
-    │   ├── api/          # Маршруты FastAPI
-    │   ├── core/         # Конфиги и безопасность
-    │   ├── db/           # База данных и модели
-    │   ├── schemas/      # Pydantic модели
-    │   ├── services/     # Логика (AI, VK бот, Калькулятор)
-    │   ├── main.py       # Точка входа
-    │   └── requirements.txt
-    ├── frontend/
-    │   ├── js/           # JS логика
-    │   ├── styles/       # CSS стили
-    │   └── index.html    # SPA интерфейс
-    └── README.md
+\```
+laser_crm/
+├── backend/
+│   ├── api/                # Роутеры API (Auth, Orders, Clients, System...)
+│   ├── core/               # Конфигурация и безопасность (JWT, Hashing)
+│   ├── db/                 # Модели SQLAlchemy и сессии
+│   ├── schemas/            # Pydantic схемы валидации
+│   ├── services/           # Бизнес-логика (Calculator, AI, VK Bot, Backup)
+│   ├── main.py             # Точка входа приложения
+│   └── requirements.txt    # Зависимости Python
+├── frontend/
+│   ├── js/                 # Модули JS (API, Components, Utils)
+│   ├── styles/             # Модульные CSS файлы
+│   └── index.html          # Основной HTML шаблон
+├── data/                   # Папка для БД и бэкапов (создается автоматически)
+├── install.sh              # 🚀 Скрипт автоматической установки (DevOps)
+├── status.sh               # 📊 Скрипт мониторинга системы
+├── start.sh                # ▶️ Скрипт запуска сервисов
+├── stop.sh                 # ⏹️ Скрипт остановки сервисов
+└── README.md
+\```
+💻 Локальный запуск (Для разработки на ПК)
+Для быстрого старта на локальной машине (Windows/macOS/Linux) без настройки сервера:
 
----
+1. **Подготовка окружения:**
+\```
+python -m venv venv
+source venv/bin/activate  # Или venv\Scripts\activate на Windows
+pip install -r backend/requirements.txt
+\```
+2. **Настройка переменных:**
+Создайте файл backend/.env:
+\```
+VK_TOKEN=ваш_токен_группы
+SECRET_KEY=super_secret_key
+DATABASE_URL=sqlite+aiosqlite:///../data/laser_crm.sqlite3
+\```
+3. **Запуск сервера:**
+\```
+python backend/main.py
+\```
+Система автоматически создаст администратора при первом старте.
+    👤 Логин: admin
+    🔑 Пароль: admin
+    📄 Swagger UI: http://localhost:8000/docs
+🍓 **Установка на сервер / Raspberry Pi (Production)**
+Благодаря встроенным DevOps-скриптам, развертывание полноценного продакшн-сервера занимает **всего 1 минуту**. Скрипты автоматически настроят Nginx, Systemd, Firewall и Python-окружение.
+**Шаг 1. Перенос проекта**
+Склонируйте репозиторий или скопируйте файлы проекта на сервер (например, в /home/pi/laser_crm).
+**Шаг 2. Подготовка скриптов**
+Перейдите в папку проекта и выдайте права на выполнение bash-скриптам:
+\```
+cd /home/pi/laser_crm
+chmod +x *.sh
+\```
+**Шаг 3. Автоматическая установка**
+Запустите главный скрипт установки от имени суперпользователя:
+\```
+sudo ./install.sh
+\```
+**Что делает скрипт:**
 
-## 💻 1. Локальный запуск (Для ПК)
+    Устанавливает системные пакеты (python3-venv, nginx, ufw).
+    Создает изолированное виртуальное окружение и ставит зависимости.
+    Генерирует конфиги Systemd (для автозапуска приложения) и Nginx (как обратный прокси).
+    Настраивает брандмауэр UFW (открывает только 80 порт и SSH).
+    Запускает все сервисы.
 
-Идеально для разработки и тестирования на Windows/Mac/Linux.
+    ⚠️ Важно: После установки отредактируйте файл backend/.env, указав реальный VK_TOKEN, и перезапустите сервис командой ./start.sh.
 
-**Шаг 1. Клонирование и настройка окружения**
-Откройте терминал в папке `backend`:
-    
-    python -m venv venv
-    source venv/bin/activate  # Для Windows: venv\Scripts\activate
-    pip install -r requirements.txt
-    
-**Шаг 2. Переменные окружения**
-Создайте файл `.env` в папке `backend`:
+Шаг 4. Управление и мониторинг
+Используйте готовые утилиты для контроля за сервером:
 
-    VK_TOKEN=vk1.a.ваш_токен_здесь
-    SECRET_KEY=super_secret_key_123
-    
-**Шаг 3. Запуск сервера**
-    
-    python main.py
-    
-**Шаг 4. Вход в систему**
-Откройте в браузере файл `frontend/index.html`. 
-При первом запуске автоматически создается учетная запись:
-- **Логин:** `admin`
-- **Пароль:** `admin`
-
-*Документация API (Swagger UI) доступна по адресу: http://localhost:8000/docs*
-
----
-
-## 🍓 2. Установка на Raspberry Pi 3B+ (Production)
-
-Так как Raspberry Pi 3B+ имеет всего 1 ГБ ОЗУ, мы не используем ресурсоемкий Docker. Система разворачивается нативно (Nginx + Systemd).
-
-**Шаг 1. Подготовка системы**
-Подключитесь к Raspberry Pi по SSH и обновите пакеты:
-    
-    sudo apt update && sudo apt upgrade -y
-    sudo apt install python3-venv python3-dev nginx git ufw -y
-    
-**Шаг 2. Загрузка проекта и зависимости**
-Поместите папку `laser_crm` в домашнюю директорию `/home/pi/laser_crm`.
-    
-    cd /home/pi/laser_crm/backend
-    python3 -m venv venv
-    source venv/bin/activate
-    pip install -r requirements.txt
-    
-Не забудьте создать файл `.env` с токеном ВК, как в локальной инструкции.
-
-**Шаг 3. Настройка Systemd (Автозапуск бэкенда)**
-Создайте службу для автоматического запуска сервера:
-    
-    sudo nano /etc/systemd/system/lasercrm.service
-    
-Вставьте этот конфиг:
-
-    [Unit]
-    Description=Laser CRM FastAPI Backend
-    After=network.target
-
-    [Service]
-    User=pi
-    Group=www-data
-    WorkingDirectory=/home/pi/laser_crm/backend
-    Environment="PATH=/home/pi/laser_crm/backend/venv/bin"
-    ExecStart=/home/pi/laser_crm/backend/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --workers 1
-    Restart=always
-
-    [Install]
-    WantedBy=multi-user.target
-    
-Запустите службу:
-    
-    sudo systemctl daemon-reload
-    sudo systemctl enable lasercrm
-    sudo systemctl start lasercrm
-    
-**Шаг 4. Настройка Nginx (Фронтенд)**
-Удалите стандартный конфиг и создайте новый:
-    
-    sudo rm /etc/nginx/sites-enabled/default
-    sudo nano /etc/nginx/sites-available/lasercrm
-    
-Вставьте этот конфиг:
-
-    server {
-        listen 80;
-        server_name _;
-
-        root /home/pi/laser_crm/frontend;
-        index index.html;
-
-        # Отдача статики
-        location / {
-            try_files $uri $uri/ /index.html;
-        }
-
-        # Проксирование API
-        location /api/ {
-            proxy_pass http://127.0.0.1:8000/api/;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-    }
-    
-Активируйте конфиг и перезапустите Nginx:
-    
-    sudo ln -s /etc/nginx/sites-available/lasercrm /etc/nginx/sites-enabled/
-    sudo systemctl restart nginx
-    
-**Шаг 5. Настройка Firewall (Безопасность)**
-Откройте только нужные порты:
-    
-    sudo ufw allow 'Nginx HTTP'
-    sudo ufw allow OpenSSH
-    sudo ufw enable
-    
-**Готово! 🎉** 
-Теперь вы можете открыть интерфейс CRM с любого устройства в вашей Wi-Fi сети, просто введя локальный IP-адрес Raspberry Pi в браузере (например: `http://192.168.1.15`).
+    Проверка статуса:
