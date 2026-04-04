@@ -11,6 +11,7 @@ from .api.inventory import router as inventory_router
 from .api.chat import router as chat_router
 from .api.analytics import router as analytics_router
 from .api.system import router as system_router
+from .api.auth import create_default_admin
 from .services.vk_bot import bot
 
 # Настройка логгера
@@ -22,16 +23,19 @@ vk_task = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Управление жизненным циклом приложения (БД и Бот)."""
     global vk_task
     
     logger.info("🚀 Старт системы...")
     
-    # Инициализация БД
+    # 1. Инициализация таблиц БД
     await init_db()
     logger.info("✅ База данных готова.")
 
-    # Запуск VK бота в фоне
+    # 2. Создание дефолтного админа (если нужно)
+    async with async_session_maker() as session:
+        await create_default_admin(session)
+
+    # 3. Запуск VK бота
     if bot:
         logger.info("🤖 Запуск VK-бота...")
         vk_task = asyncio.create_task(bot.run_polling())
