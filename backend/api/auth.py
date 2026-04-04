@@ -2,42 +2,52 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Optional
-import jwt
-import hashlib
 
 from ..db.session import get_db
 from ..db.models import User
+from ..core.security import (
+    verify_password, 
+    get_password_hash, 
+    create_access_token, 
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    SECRET_KEY,
+    ALGORITHM
+)
+from fastapi.security import OAuth2PasswordBearer
+import jwt
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
-# КОНФИГУРАЦИЯ (В продакшене вынести в .env!)
-SECRET_KEY = "super_secret_key_change_me_in_prod"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 24 часа
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+
+async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
+    """
+    Зависимость для получения текущего пользователя из токена.
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except jwt.PyJWTError:
+        raise credentials_exception
+        
+    stmt = select(User).where(User.username == username)
+    result = await db.execute(stmt)
+    user = result.scalars().first()
     
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    if user is None:
+        raise credentials_exception
+    return user
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """
-    Простая проверка пароля. 
-    В реальном проекте используйте passlib.hash.bcrypt_context.verify
-    Здесь для простоты используем SHA-256 хэширование строки.
-    """
-    # Если в БД хранится просто строка (для дев-теста), сравниваем напрямую
-    # Если хэш:
-    expected_hash = hashlib.sha256(plain_password.encode()).hexdigest()
-    return expected_hash == hashed_password or plain_password == hashed_password
 
 @router.post("/token")
 async def login_for_access_token(
@@ -45,10 +55,10 @@ async def login_for_access_token(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Выдает JWT токен при успешной авторизации.
-    Ожидает username и password в form-data.
+    Получение JWT токена.
+    Принимает username и password (form-data).
     """
-    # Поиск пользователя
+    # Поиск пользователя в БД
     stmt = select(User).where(User.username == form_data.username)
     result = await db.execute(stmt)
     user = result.scalars().first()
@@ -71,15 +81,32 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-async def get_current_user(
-    token: str = Depends(OAuth2PasswordRequestForm), # Упрощенно, лучше использовать OAuth2PasswordBearer
-    db: AsyncSession = Depends(get_db)
-):
+# --- Логика инициализации Админа ---
+
+async def create_default_admin(db: AsyncSession):
     """
-    Зависимость для получения текущего пользователя из токена.
-    Примечание: Для корректной работы в роутерах нужно использовать OAuth2PasswordBearer схему.
-    Ниже реализована упрощенная версия для примера логики декодирования.
+    Создает пользователя admin/admin, если база пользователей пуста.
+    Вызывается при старте приложения.
     """
-    # Эта функция требует правильной настройки security схемы в FastAPI
-    # Для полноценного использования см. документацию FastAPI Security
-    pass
+    stmt = select(User)
+    result = await db.execute(stmt)
+    users = result.scalars().all()
+
+    if not users:
+        print("🔒 Пользователи не найдены. Создание дефолтного администратора...")
+        
+        admin_password = "admin"
+        hashed_pw = get_password_hash(admin_password)
+        
+        new_admin = User(
+            username="admin",
+            password_hash=hashed_pw,
+            role="admin",
+            is_active=True
+        )
+        
+        db.add(new_admin)
+        await db.commit()
+        print("✅ Администратор создан: login='admin', password='admin'")
+    else:
+        print(f"✅ База пользователей не пуста ({len(users)} чел.). Пропускаем создание админа.")
