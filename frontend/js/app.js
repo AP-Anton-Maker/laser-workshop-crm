@@ -1,9 +1,10 @@
-import { login, logout, getToken, getAuthHeaders } from './api/auth.js';
+import { login, logout } from './api/api_client.js';
 import { initRouter } from './router.js';
 import { renderOrdersTable } from './components/orders_ui.js';
+import { renderVacationSettings, checkVacationMode } from './components/vacation_ui.js';
 import { showToast } from './utils/toast.js';
 
-// Элементы DOM
+// DOM элементы
 const loginOverlay = document.getElementById('login-overlay');
 const crmApp = document.getElementById('crm-app');
 const loginForm = document.getElementById('login-form');
@@ -11,10 +12,10 @@ const loginError = document.getElementById('login-error');
 const logoutBtn = document.getElementById('logout-btn');
 
 /**
- * Проверка состояния авторизации при загрузке
+ * Проверка авторизации
  */
 function checkAuth() {
-    const token = getToken();
+    const token = localStorage.getItem('crm_token');
 
     if (!token) {
         // Нет токена -> Показываем вход
@@ -25,40 +26,40 @@ function checkAuth() {
         loginOverlay.style.display = 'none';
         crmApp.style.display = 'grid'; // Возвращаем grid layout
         
-        // Инициализация приложения
         initApp();
     }
 }
 
 /**
- * Инициализация основного функционала CRM
+ * Инициализация приложения
  */
 function initApp() {
-    console.log("🚀 CRM App Initialized");
+    console.log("🚀 Laser CRM Initialized");
     
-    // Запуск роутера (вкладки)
+    // Запуск роутера
     initRouter();
     
-    // Первоначальная загрузка данных (можно добавить загрузку дашборда здесь)
-    // renderDashboard(); 
+    // Инициализация настроек отпуска
+    renderVacationSettings('vacation-settings-container');
+    checkVacationMode();
     
+    // Приветствие
     showToast("Добро пожаловать в систему!", "success");
 }
 
-// Обработчик формы входа
+// Обработчик входа
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     
-    // Сброс ошибок
     loginError.style.display = 'none';
     loginError.textContent = '';
     
     try {
         await login(username, password);
-        checkAuth(); // Перепроверка и переключение интерфейса
+        checkAuth();
     } catch (err) {
         loginError.textContent = err.message;
         loginError.style.display = 'block';
@@ -73,5 +74,5 @@ logoutBtn.addEventListener('click', () => {
     }
 });
 
-// Запуск проверки при загрузке страницы
+// Старт
 document.addEventListener('DOMContentLoaded', checkAuth);
