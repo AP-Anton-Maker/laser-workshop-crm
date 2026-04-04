@@ -9,6 +9,7 @@ from .api.orders import action_router as order_actions_router
 from .api.chat import router as chat_router
 from .api.inventory import router as inventory_router
 from .api.clients import router as clients_router
+from .api.analytics import router as analytics_router
 
 # Импорт бота
 from .services.vk_bot import bot
@@ -74,9 +75,10 @@ app.add_middleware(
 # Подключение роутеров
 app.include_router(orders_router)
 app.include_router(order_actions_router)
-app.include_router(chat_router)  # <--- Роутер чата
-app.include_router(inventory_router)  # <-- Роутер инвентаря
-app.include_router(clients_router)  # <-- Роутер клиента
+app.include_router(chat_router)  # <--- Роутер ВК чат
+app.include_router(inventory_router)  # <-- Роутер инвентарь
+app.include_router(clients_router)  # <-- Роутер клиенты
+app.include_router(analytics_router)  # <-- Роутер аналитика
 
 @app.get("/")
 async def root():
