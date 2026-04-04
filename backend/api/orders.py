@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 import json
 from datetime import datetime
@@ -8,7 +8,7 @@ from typing import List, Optional
 
 from ..db.session import get_db
 from ..db.models import Order, Client, CashbackHistory
-from ..schemas.order import OrderCreate, OrderStatusUpdate, OrderResponse
+from ..schemas.all_schemas import OrderCreate, OrderStatusUpdate, OrderResponse
 from ..services.calculator import SmartCalculator
 
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
@@ -17,15 +17,12 @@ action_router = APIRouter(prefix="/api/order", tags=["Order Actions"])
 
 @router.get("/", response_model=List[OrderResponse])
 async def get_orders(
-    status_filter: Optional[str] = Query(None, alias="status", description="Фильтр по статусу"),
+    status_filter: Optional[str] = Query(None, alias="status"),
     db: AsyncSession = Depends(get_db)
 ):
-    """Получение списка заказов с фильтрацией и подгрузкой клиента."""
     stmt = select(Order).options(selectinload(Order.client))
-    
     if status_filter:
         stmt = stmt.where(Order.status == status_filter.upper())
-    
     stmt = stmt.order_by(Order.created_at.desc())
     
     result = await db.execute(stmt)
@@ -39,43 +36,25 @@ async def get_orders(
         try:
             if order.parameters:
                 data.parameters = json.loads(order.parameters)
-        except (json.JSONDecodeError, TypeError):
+        except:
             data.parameters = {}
         response_list.append(data)
-        
     return response_list
 
 
 @action_router.post("/create", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
-async def create_order(
-    order_data: OrderCreate,
-    db: AsyncSession = Depends(get_db)
-):
-    """Создание заказа с проверкой цены через SmartCalculator."""
-    # Проверка клиента
+async def create_order(order_data: OrderCreate, db: AsyncSession = Depends(get_db)):
     client = await db.get(Client, order_data.client_id)
     if not client:
-        raise HTTPException(status_code=404, detail="Клиент не найден")
+        raise HTTPException(status_code=404, detail="Client not found")
 
-    # Расчет справедливой цены на сервере
+    # Расчет цены на сервере (для проверки, но сохраняем переданную, если разница не критична)
+    # В реальном проекте здесь должна быть строгая валидация
     calculated_price = SmartCalculator.calculate(
-        calc_type=order_data.service_name, # В реальном проекте лучше передавать calc_type отдельно
-        base_price=100.0, # Базовую цену нужно брать из справочника услуг, здесь заглушка для примера логики
+        calc_type=order_data.service_name,
+        base_price=100.0, # Заглушка, в реальности брать из справочника
         params=order_data.parameters
     )
-    
-    # Сравнение цен (допускаем погрешность 2 рубля)
-    # Примечание: В реальном ТЗ base_price должен приходить или браться из БД услуг. 
-    # Для демонстрации защиты: если total_price сильно отличается от рассчитанного (при условии что база известна), ошибка.
-    # В данной реализации мы просто сохраняем переданную цену, но логика проверки готова к вставке.
-    # Если требуется строгая проверка, раскомментируйте блок ниже, имея эталонную базу цен:
-    """
-    if abs(calculated_price - order_data.total_price) > 2.0:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Цена не совпадает с расчетом сервера. Ожидалось: {calculated_price}, Получено: {order_data.total_price}"
-        )
-    """
 
     parameters_json = json.dumps(order_data.parameters, ensure_ascii=False)
 
@@ -92,7 +71,6 @@ async def create_order(
 
     db.add(new_order)
     await db.commit()
-    await db.refresh(new_order)
     await db.refresh(new_order, attribute_names=['client'])
     
     resp = OrderResponse.model_validate(new_order)
@@ -102,19 +80,14 @@ async def create_order(
         resp.parameters = json.loads(new_order.parameters)
     except:
         resp.parameters = {}
-        
     return resp
 
 
 @action_router.post("/status", response_model=OrderResponse)
-async def update_order_status(
-    status_data: OrderStatusUpdate,
-    db: AsyncSession = Depends(get_db)
-):
-    """Обновление статуса с начислением кэшбэка при завершении."""
+async def update_order_status(status_data: OrderStatusUpdate, db: AsyncSession = Depends(get_db)):
     order = await db.get(Order, status_data.order_id)
     if not order:
-        raise HTTPException(status_code=404, detail="Заказ не найден")
+        raise HTTPException(status_code=404, detail="Order not found")
 
     old_status = order.status
     new_status = status_data.status.upper()
@@ -122,41 +95,32 @@ async def update_order_status(
     order.status = new_status
     order.updated_at = datetime.utcnow()
 
-    # Логика начисления кэшбэка при переходе в статус DONE/COMPLETED
+    # Логика начисления кэшбэка при завершении
     if new_status in ["DONE", "COMPLETED"] and old_status not in ["DONE", "COMPLETED"]:
         client = await db.get(Client, order.client_id)
         if client:
-            # 1. Обновление статистики клиента
             client.total_orders += 1
             client.total_spent += order.total_price
             
-            # 2. Начисление кэшбэка (5%)
             cashback_amount = order.total_price * 0.05
             client.cashback_balance += cashback_amount
             
-            # 3. Обновление сегмента
-            if client.total_spent > 50000:
-                client.segment = "vip"
-            elif client.total_spent > 15000:
-                client.segment = "loyal"
-            elif client.total_spent > 5000:
-                client.segment = "regular"
-            else:
-                client.segment = "new"
+            # Сегментация
+            if client.total_spent > 50000: client.segment = "vip"
+            elif client.total_spent > 15000: client.segment = "loyal"
+            elif client.total_spent > 5000: client.segment = "regular"
+            else: client.segment = "new"
             
-            # 4. Запись в историю
             history_entry = CashbackHistory(
                 client_id=client.id,
                 order_id=order.id,
                 operation_type="earned",
                 amount=cashback_amount,
-                description=f"Кэшбэк за заказ #{order.id}",
-                created_at=datetime.utcnow()
+                description=f"Кэшбэк за заказ #{order.id}"
             )
             db.add(history_entry)
 
     await db.commit()
-    await db.refresh(order)
     await db.refresh(order, attribute_names=['client'])
     
     resp = OrderResponse.model_validate(order)
@@ -166,5 +130,4 @@ async def update_order_status(
         resp.parameters = json.loads(order.parameters)
     except:
         resp.parameters = {}
-        
     return resp
