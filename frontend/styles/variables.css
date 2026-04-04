@@ -1,71 +1,48 @@
 :root {
-    /* --- Цветовая палитра (Светлая тема по умолчанию) --- */
-    --color-primary: #4f46e5;       /* Indigo 600 */
-    --color-primary-hover: #4338ca; /* Indigo 700 */
-    --color-secondary: #64748b;     /* Slate 500 */
+    /* Светлая тема (по умолчанию) */
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
     
-    --color-success: #10b981;       /* Emerald 500 */
-    --color-success-bg: #d1fae5;    /* Emerald 100 */
-    --color-warning: #f59e0b;       /* Amber 500 */
-    --color-warning-bg: #fef3c7;    /* Amber 100 */
-    --color-danger: #ef4444;        /* Red 500 */
-    --color-danger-bg: #fee2e2;     /* Red 100 */
-    --color-info: #3b82f6;          /* Blue 500 */
-    --color-info-bg: #dbeafe;       /* Blue 100 */
-
-    /* Фон и Текст */
-    --bg-body: #f1f5f9;             /* Slate 100 */
+    --bg-body: #f3f4f6;
     --bg-card: #ffffff;
-    --bg-sidebar: #1e293b;          /* Slate 800 */
-    --text-main: #0f172a;           /* Slate 900 */
-    --text-muted: #64748b;          /* Slate 500 */
-    --text-inverse: #ffffff;
+    --bg-sidebar: #1f2937;
+    --bg-input: #ffffff;
     
-    /* Границы */
-    --border-color: #e2e8f0;        /* Slate 200 */
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --text-sidebar: #e5e7eb;
     
-    /* Тени */
+    --border-color: #e5e7eb;
+    
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-
-    /* Шрифты */
-    --font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    --font-size-base: 16px;
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     
-    /* Размеры */
-    --sidebar-width: 260px;
-    --header-height: 64px;
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    
-    /* Анимации */
-    --transition-fast: 0.2s ease;
-    --transition-normal: 0.3s ease;
+    --font-family: 'Inter', sans-serif;
 }
 
-/* --- Темная тема (активируется классом .dark-theme на body) --- */
-body.dark-theme {
-    --bg-body: #0f172a;             /* Slate 900 */
-    --bg-card: #1e293b;             /* Slate 800 */
-    --bg-sidebar: #020617;          /* Slate 950 */
-    --text-main: #f8fafc;           /* Slate 50 */
-    --text-muted: #94a3b8;          /* Slate 400 */
-    --border-color: #334155;        /* Slate 700 */
-    
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-}
-
-/* Автоматическая темная тема через системные настройки (опционально) */
+/* Темная тема (автоматически или по классу) */
 @media (prefers-color-scheme: dark) {
-    body.auto-dark {
-        --bg-body: #0f172a;
-        --bg-card: #1e293b;
-        --bg-sidebar: #020617;
-        --text-main: #f8fafc;
-        --text-muted: #94a3b8;
-        --border-color: #334155;
+    :root {
+        --bg-body: #111827;
+        --bg-card: #1f2937;
+        --bg-input: #374151;
+        
+        --text-primary: #f9fafb;
+        --text-secondary: #9ca3af;
+        
+        --border-color: #374151;
     }
+}
+
+/* Класс для ручного переключения (если нужно) */
+body.dark-theme {
+    --bg-body: #111827;
+    --bg-card: #1f2937;
+    --bg-input: #374151;
+    --text-primary: #f9fafb;
+    --text-secondary: #9ca3af;
+    --border-color: #374151;
 }
