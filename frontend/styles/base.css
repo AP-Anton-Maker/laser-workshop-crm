@@ -1,56 +1,19 @@
-/* Обнуление и базовые настройки */
-*, *::before, *::after {
-    box-sizing: border-box;
+* {
     margin: 0;
     padding: 0;
-}
-
-html {
-    font-size: var(--font-size-base);
-    scroll-behavior: smooth;
+    box-sizing: border-box;
 }
 
 body {
     font-family: var(--font-family);
     background-color: var(--bg-body);
-    color: var(--text-main);
+    color: var(--text-primary);
     line-height: 1.5;
-    min-height: 100vh;
     overflow-x: hidden;
-    transition: background-color var(--transition-normal), color var(--transition-normal);
+    transition: background-color 0.3s, color 0.3s;
 }
 
-/* Ссылки */
-a {
-    text-decoration: none;
-    color: inherit;
-    transition: color var(--transition-fast);
-}
-
-a:hover {
-    color: var(--color-primary);
-}
-
-/* Списки */
-ul, ol {
-    list-style: none;
-}
-
-/* Изображения и медиа */
-img, video, svg {
-    max-width: 100%;
-    height: auto;
-    display: block;
-}
-
-/* Формы */
-input, textarea, select, button {
-    font-family: inherit;
-    font-size: inherit;
-    outline: none;
-}
-
-/* Кастомный скроллбар (Webkit) */
+/* Кастомный скроллбар */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -61,17 +24,41 @@ input, textarea, select, button {
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: var(--text-muted);
+    background: #9ca3af;
     border-radius: 4px;
-    opacity: 0.5;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background-color: var(--color-primary);
-    opacity: 1;
+    background: #6b7280;
 }
 
-/* Утилиты для скрытия элементов */
-.hidden {
-    display: none !important;
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+}
+
+input, textarea, select {
+    font-family: inherit;
+}
+
+.text-muted {
+    color: var(--text-secondary);
+}
+
+.text-sm {
+    font-size: 0.875rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
 }
