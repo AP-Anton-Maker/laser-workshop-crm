@@ -1,70 +1,70 @@
-# Импорты сессий и роутеров
-import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import asyncio
+import logging
+
 from .db.session import init_db, close_db
-from .api.orders import router as orders_router
-from .api.orders import action_router as order_actions_router
-from .api.chat import router as chat_router
-from .api.inventory import router as inventory_router
+from .api.orders import router as orders_router, action_router as order_actions_router
 from .api.clients import router as clients_router
+from .api.inventory import router as inventory_router
+from .api.chat import router as chat_router
 from .api.analytics import router as analytics_router
 from .api.system import router as system_router
-
-# Импорт бота
 from .services.vk_bot import bot
 
-# Глобальная переменная для задачи бота
-vk_polling_task = None
+# Настройка логгера
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("main")
+
+vk_task = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan событие для инициализации БД и запуска VK-бота в фоне"""
-    global vk_polling_task
+    """Управление жизненным циклом приложения (БД и Бот)."""
+    global vk_task
     
-    print("🚀 Инициализация системы...")
+    logger.info("🚀 Старт системы...")
     
-    # 1. Инициализация БД
+    # Инициализация БД
     await init_db()
-    print("✅ База данных инициализирована!")
+    logger.info("✅ База данных готова.")
 
-    # 2. Запуск VK-бота в фоновом режиме (если токен настроен)
+    # Запуск VK бота в фоне
     if bot:
-        print("🤖 Запуск VK-бота в фоновом режиме...")
-        # bot.run_polling() - это бесконечный цикл, поэтому запускаем как задачу
-        vk_polling_task = asyncio.create_task(bot.run_polling())
+        logger.info("🤖 Запуск VK-бота...")
+        vk_task = asyncio.create_task(bot.run_polling())
     else:
-        print("⚠️  VK-бот пропущен (отсутствует токен).")
+        logger.warning("⚠️ VK-бот не запущен (нет токена).")
 
-    yield  # Сервер работает
+    yield
 
-    # --- Завершение работы ---
-    print("🛑 Остановка системы...")
+    # Остановка
+    logger.info("🛑 Остановка системы...")
     
-    # Отменяем задачу бота, если она существует
-    if vk_polling_task and not vk_polling_task.done():
-        print("Остановка VK-поллинга...")
-        vk_polling_task.cancel()
+    if vk_task and not vk_task.done():
+        logger.info("Остановка бота...")
+        vk_task.cancel()
         try:
-            await vk_polling_task
+            await vk_task
         except asyncio.CancelledError:
-            pass  # Ожидаемая ошибка при отмене
+            logger.info("Бот остановлен.")
+        except Exception as e:
+            logger.error(f"Ошибка при остановке бота: {e}")
             
-    # Закрытие соединений с БД
     await close_db()
-    print("✅ Система остановлена.")
+    logger.info("✅ Система остановлена.")
 
 
 app = FastAPI(
     title="Лазерная Мастерская CRM",
-    description="CRM система с интеграцией ВКонтакте",
+    description="Полная CRM система с AI и интеграцией ВК",
     version="1.0.0",
     lifespan=lifespan
 )
 
-# Настройка CORS
+# CORS настройки
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -76,27 +76,23 @@ app.add_middleware(
 # Подключение роутеров
 app.include_router(orders_router)
 app.include_router(order_actions_router)
-app.include_router(chat_router)  # <--- Роутер ВК чат
-app.include_router(inventory_router)  # <-- Роутер инвентарь
-app.include_router(clients_router)  # <-- Роутер клиенты
-app.include_router(analytics_router)  # <-- Роутер аналитика
-app.include_router(system_router)  # <-- Роутер Бекап
+app.include_router(clients_router)
+app.include_router(inventory_router)
+app.include_router(chat_router)
+app.include_router(analytics_router)
+app.include_router(system_router)
+
 
 @app.get("/")
 async def root():
-    return {"message": "Добро пожаловать в Лазерную Мастерскую CRM!"}
+    return {"status": "running", "service": "Laser CRM API"}
 
 
 @app.get("/api/ping")
 async def ping():
-    return {
-        "status": "ok",
-        "message": "🔬 Laser CRM API + VK Bot работает!",
-        "version": "1.0.0"
-    }
+    return {"status": "ok", "version": "1.0.0"}
 
 
 if __name__ == "__main__":
     import uvicorn
-    # Запускаем сервер
     uvicorn.run(app, host="0.0.0.0", port=8000)
