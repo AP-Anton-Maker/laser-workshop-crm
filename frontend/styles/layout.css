@@ -1,114 +1,110 @@
-/* Основной контейнер приложения */
-.app-container {
-    display: flex;
+/* Основной каркас */
+#crm-app {
+    display: grid;
+    grid-template-columns: 260px 1fr;
     min-height: 100vh;
 }
 
-/* --- Сайдбар (Боковое меню) --- */
+/* Сайдбар */
 .sidebar {
-    width: var(--sidebar-width);
     background-color: var(--bg-sidebar);
-    color: var(--text-inverse);
+    color: var(--text-sidebar);
     display: flex;
     flex-direction: column;
     position: fixed;
     top: 0;
     left: 0;
     height: 100vh;
+    width: 260px;
     z-index: 50;
-    transition: transform var(--transition-normal);
-    box-shadow: var(--shadow-lg);
+    transition: transform 0.3s ease;
 }
 
 .sidebar-header {
-    height: var(--header-height);
-    display: flex;
-    align-items: center;
-    padding: 0 1.5rem;
-    font-size: 1.25rem;
-    font-weight: 700;
+    padding: 1.5rem;
     border-bottom: 1px solid rgba(255,255,255,0.1);
-    color: #fff;
 }
 
-.sidebar-nav {
+.sidebar-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.nav-menu {
     flex: 1;
-    padding: 1.5rem 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    padding: 1rem 0;
+    overflow-y: auto;
 }
 
 .nav-item {
     display: flex;
     align-items: center;
-    padding: 0.75rem 1rem;
-    border-radius: var(--radius-md);
-    color: #cbd5e1; /* Slate 300 */
-    cursor: pointer;
-    transition: all var(--transition-fast);
+    padding: 0.75rem 1.5rem;
+    color: #9ca3af;
+    transition: all 0.2s;
+    font-weight: 500;
 }
 
 .nav-item:hover {
-    background-color: rgba(255,255,255,0.1);
+    background-color: rgba(255,255,255,0.05);
     color: #fff;
 }
 
 .nav-item.active {
-    background-color: var(--color-primary);
+    background-color: var(--primary-color);
     color: #fff;
-    box-shadow: var(--shadow-md);
 }
 
-.nav-icon {
+.nav-item .icon {
     margin-right: 0.75rem;
-    width: 20px;
-    height: 20px;
+    font-size: 1.2rem;
 }
 
-/* --- Основной контент --- */
+.sidebar-footer {
+    padding: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Основной контент */
 .main-content {
-    flex: 1;
-    margin-left: var(--sidebar-width);
+    grid-column: 2;
     display: flex;
     flex-direction: column;
-    min-width: 0; /* Fix для flexbox overflow */
+    margin-left: 260px; /* Отступ под ширину сайдбара */
+    width: calc(100% - 260px);
 }
 
-/* Хедер */
 .header {
-    height: var(--header-height);
     background-color: var(--bg-card);
+    padding: 1rem 2rem;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 2rem;
     position: sticky;
     top: 0;
     z-index: 40;
     box-shadow: var(--shadow-sm);
 }
 
-.header-title {
-    font-size: 1.25rem;
+.header h1 {
+    font-size: 1.5rem;
     font-weight: 600;
 }
 
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-right: 1rem;
 }
 
-/* Область контента */
-.content-area {
-    flex: 1;
+.content-wrapper {
     padding: 2rem;
-    overflow-y: auto;
+    flex: 1;
 }
 
-/* Секции (вкладки) */
 .content-section {
     display: none;
     animation: fadeIn 0.3s ease-in-out;
@@ -123,7 +119,7 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Сетка дашборда */
+/* Сетки дашборда */
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -137,17 +133,12 @@
     gap: 1.5rem;
 }
 
-/* --- Адаптивность (Mobile) --- */
-.mobile-menu-btn {
-    display: none;
-    background: none;
-    border: none;
-    color: var(--text-main);
-    font-size: 1.5rem;
-    cursor: pointer;
-}
-
+/* Адаптивность */
 @media (max-width: 768px) {
+    #crm-app {
+        grid-template-columns: 1fr;
+    }
+    
     .sidebar {
         transform: translateX(-100%);
     }
@@ -158,21 +149,14 @@
     
     .main-content {
         margin-left: 0;
+        width: 100%;
     }
     
     .mobile-menu-btn {
         display: block;
     }
     
-    .header {
-        padding: 0 1rem;
-    }
-    
-    .content-area {
-        padding: 1rem;
-    }
-    
-    .dashboard-grid, .charts-grid {
+    .charts-grid {
         grid-template-columns: 1fr;
     }
 }
