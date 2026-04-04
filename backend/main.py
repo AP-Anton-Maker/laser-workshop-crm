@@ -1,9 +1,8 @@
+# Импорты сессий и роутеров
+import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import asyncio
-
-# Импорты сессий и роутеров
 from .db.session import init_db, close_db
 from .api.orders import router as orders_router
 from .api.orders import action_router as order_actions_router
@@ -77,7 +76,7 @@ app.include_router(orders_router)
 app.include_router(order_actions_router)
 app.include_router(chat_router)  # <--- Роутер чата
 app.include_router(inventory_router)  # <-- Роутер инвентаря
-app.include_router(clients_router)
+app.include_router(clients_router)  # <-- Роутер клиента
 
 @app.get("/")
 async def root():
