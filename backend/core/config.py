@@ -1,42 +1,42 @@
-"""
-Конфигурация приложения Laser CRM.
-Настройка путей и параметров подключения к базе данных.
-"""
-import os
-from pathlib import Path
 from pydantic_settings import BaseSettings
+from pathlib import Path
+import os
 
 
 class Settings(BaseSettings):
-    """Настройки приложения."""
+    """
+    Конфигурация приложения.
+    Загружает переменные окружения или использует значения по умолчанию.
+    """
+    # URL базы данных
+    DATABASE_URL: str = "sqlite+aiosqlite:///../data/laser_crm.sqlite3"
     
-    # Базовая директория проекта (backend)
-    BASE_DIR: Path = Path(__file__).resolve().parent.parent
+    # Токен группы ВКонтакте
+    VK_TOKEN: str = os.getenv("VK_TOKEN", "")
     
-    # Директория для данных (находится на уровень выше backend)
-    DATA_DIR: Path = BASE_DIR.parent / "data"
-    
-    # Путь к базе данных SQLite
-    # Формат: sqlite+aiosqlite:///../data/laser_crm.sqlite3
-    DATABASE_URL: str = f"sqlite+aiosqlite:///{DATA_DIR}/laser_crm.sqlite3"
-    
-    # Секретный ключ для JWT токенов (в продакшене брать из .env)
-    SECRET_KEY: str = "your-secret-key-change-in-production"
-    
-    # Алгоритм хеширования паролей
-    ALGORITHM: str = "HS256"
-    
-    # Время жизни токена доступа (минуты)
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 часа
-    
+    # Секретный ключ для сессий (опционально)
+    SECRET_KEY: str = "super_secret_key_change_me_in_prod"
+
     class Config:
-        """Конфигурация загрузки настроек."""
         env_file = ".env"
-        case_sensitive = True
+        extra = "ignore"
+
+    @property
+    def database_path_resolved(self) -> str:
+        """
+        Возвращает путь к БД, предварительно создав директорию, если её нет.
+        """
+        # Извлекаем относительный путь из строки подключения
+        # sqlite+aiosqlite:///../data/file.db -> ../data/file.db
+        path_str = self.DATABASE_URL.replace("sqlite+aiosqlite:///", "")
+        db_path = Path(path_str)
+        
+        # Создаем директорию
+        db_dir = db_path.parent
+        if not db_dir.exists():
+            db_dir.mkdir(parents=True, exist_ok=True)
+            
+        return self.DATABASE_URL
 
 
-# Глобальный экземпляр настроек
 settings = Settings()
-
-# Создаём директорию data, если она не существует
-settings.DATA_DIR.mkdir(parents=True, exist_ok=True)
