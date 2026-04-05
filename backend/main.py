@@ -91,6 +91,10 @@ async def root():
 async def ping():
     return {"status": "ok"}
 
+import os
+frontend_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
+app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
