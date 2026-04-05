@@ -1,45 +1,24 @@
 from pydantic_settings import BaseSettings
-from pathlib import Path
-import os
-
+from typing import Optional
 
 class Settings(BaseSettings):
-    """
-    Конфигурация приложения.
-    Загружает переменные окружения или использует значения по умолчанию.
-    """
-    # URL базы данных
-    DATABASE_URL: str = "sqlite+aiosqlite:///../data/laser_crm.sqlite3"
+    # Базовые настройки
+    project_name: str = "Laser CRM"
     
-    # Токен группы ВКонтакте
-    VK_TOKEN: str = os.getenv("VK_TOKEN", "")
+    # База данных (путь по умолчанию, если нет .env)
+    database_url: str = "sqlite+aiosqlite:///../data/laser_crm.sqlite3"
     
-    # Секретный ключ для JWT (в продакшене менять!)
-    SECRET_KEY: str = "super-secret-key-change-me-in-prod"
+    # Безопасность
+    secret_key: str = "super_secret_key_change_me_in_production"
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 10080  # Токен живет 7 дней
     
-    # Алгоритм шифрования JWT
-    ALGORITHM: str = "HS256"
-    
-    # Время жизни токена в минутах (3000 мин ≈ 2 дня)
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 3000
+    # ВКонтакте
+    vk_token: str = ""
 
     class Config:
         env_file = ".env"
+        env_file_encoding = "utf-8"
         extra = "ignore"
-
-    @property
-    def database_path_resolved(self) -> str:
-        """
-        Возвращает путь к БД, предварительно создав директорию, если её нет.
-        """
-        path_str = self.DATABASE_URL.replace("sqlite+aiosqlite:///", "")
-        db_path = Path(path_str)
-        
-        db_dir = db_path.parent
-        if not db_dir.exists():
-            db_dir.mkdir(parents=True, exist_ok=True)
-            
-        return self.DATABASE_URL
-
 
 settings = Settings()
