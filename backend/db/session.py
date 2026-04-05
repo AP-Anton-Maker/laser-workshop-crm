@@ -1,20 +1,19 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import declarative_base
 from typing import AsyncGenerator
-from ..core.config import settings
+from core.config import settings
 
 # Создание асинхронного движка
 engine = create_async_engine(
-    settings.database_path_resolved,
-    echo=False,  # Установить True для отладки SQL-запросов
-    pool_pre_ping=True,
-    future=True
+    settings.database_url,
+    echo=False,
+    pool_pre_ping=True
 )
 
 # Фабрика сессий
 async_session_maker = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
+    engine, 
+    class_=AsyncSession, 
     expire_on_commit=False,
     autocommit=False,
     autoflush=False
@@ -22,7 +21,6 @@ async_session_maker = async_sessionmaker(
 
 # Базовый класс для моделей
 Base = declarative_base()
-
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
@@ -39,17 +37,11 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         finally:
             await session.close()
 
-
 async def init_db():
-    """
-    Инициализация таблиц в БД.
-    """
+    """Создание всех таблиц в базе данных."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-
 async def close_db():
-    """
-    Закрытие соединения с БД.
-    """
+    """Аккуратное закрытие пула соединений при выключении сервера."""
     await engine.dispose()
