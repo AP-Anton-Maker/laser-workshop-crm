@@ -230,9 +230,7 @@ sudo ./deploy/install.sh
 
 ---
 
-## 📄 Лицензия
-Проект распространяется по лицензии MIT. См. файл `LICENSE`.
-```# 🔬 Laser CRM: Enterprise-система для лазерной мастерской
+# 🔬 Laser CRM: Enterprise-система для лазерной мастерской
 
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
