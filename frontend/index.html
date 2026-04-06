@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laser CRM | Enterprise</title>
+    <!-- Подключение шрифтов -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Подключение иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Подключение стилей -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Подключение Chart.js для графиков -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- ЭКРАН АВТОРИЗАЦИИ -->
+    <div id="login-view">
+        <div class="login-card">
+            <h2><i class="fa-solid fa-laser"></i> Laser CRM</h2>
+            <form id="login-form">
+                <input type="text" id="login-username" placeholder="Логин (admin)" required>
+                <input type="password" id="login-password" placeholder="Пароль (admin)" required>
+                <button type="submit" class="btn-primary" style="width: 100%;">Войти в систему</button>
+                <p id="login-error" style="color: var(--danger-color); margin-top: 10px; display: none;"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- ГЛАВНЫЙ ЭКРАН (SPA) -->
+    <div id="app-view">
+        
+        <!-- БОКОВОЕ МЕНЮ -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-fire"></i> Laser CRM
+            </div>
+            <ul class="nav-menu">
+                <li data-target="dashboard" class="active"><i class="fa-solid fa-chart-pie"></i> Дашборд</li>
+                <li data-target="orders"><i class="fa-solid fa-clipboard-list"></i> Заказы</li>
+                <li data-target="chat"><i class="fa-brands fa-vk"></i> VK Чат</li>
+                <li data-target="calculator" id="open-calc-btn"><i class="fa-solid fa-calculator"></i> Калькулятор</li>
+                <li data-target="settings"><i class="fa-solid fa-gear"></i> Настройки</li>
+            </ul>
+            <button class="logout-btn" id="logout-btn"><i class="fa-solid fa-sign-out-alt"></i> Выход</button>
+        </aside>
+
+        <!-- КОНТЕНТНАЯ ЧАСТЬ -->
+        <main>
+            <!-- Секция: Дашборд -->
+            <section id="dashboard" class="active">
+                <h2>Обзор показателей</h2>
+                <br>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <h3><i class="fa-solid fa-robot"></i> AI Прогноз на завтра</h3>
+                        <div class="value" id="kpi-forecast">0 ₽</div>
+                        <p id="kpi-trend" style="font-size: 12px; margin-top: 5px; color: var(--text-secondary);">Ожидание данных...</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h3><i class="fa-solid fa-wallet"></i> Заказов в работе</h3>
+                        <div class="value" id="kpi-active-orders">0</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="revenueChart" height="80"></canvas>
+                </div>
+            </section>
+
+            <!-- Секция: Заказы -->
+            <section id="orders">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Управление заказами</h2>
+                    <button class="btn-primary" id="btn-add-order"><i class="fa-solid fa-plus"></i> Новый заказ</button>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Клиент ID</th>
+                                <th>Описание</th>
+                                <th>Сумма</th>
+                                <th>Статус (Клик для смены)</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-tbody">
+                            <!-- Данные будут загружены через JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Секция: Чат ВК -->
+            <section id="chat">
+                <h2>Омниканальный Чат</h2>
+                <br>
+                <div class="chat-layout">
+                    <div class="chat-sidebar" id="chat-client-list">
+                        <!-- Список клиентов с историей -->
+                    </div>
+                    <div class="chat-window">
+                        <div class="chat-header" id="chat-current-client-name">
+                            Выберите чат слева
+                        </div>
+                        <div class="chat-messages" id="chat-messages-container">
+                            <!-- Пузыри сообщений -->
+                        </div>
+                        <div class="chat-input-area">
+                            <input type="text" id="chat-input" placeholder="Написать сообщение клиенту..." disabled>
+                            <button class="btn-primary" id="chat-send-btn" disabled><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Секция: Настройки и Бэкапы -->
+            <section id="settings">
+                <h2>Система и Безопасность</h2>
+                <br>
+                <div class="kpi-card" style="max-width: 400px;">
+                    <h3>Резервное копирование</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 15px;">Скачать полный дамп базы данных (SQLite) и CSV-отчеты в ZIP архиве.</p>
+                    <button class="btn-primary" id="btn-download-backup"><i class="fa-solid fa-download"></i> Сгенерировать и скачать</button>
+                </div>
+            </section>
+        </main>
+
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: Калькулятор -->
+    <div class="modal-overlay" id="modal-calc">
+        <div class="modal-content">
+            <span class="close-modal" id="close-calc-modal">&times;</span>
+            <h2>Смарт-Калькулятор</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 13px;">Расчет по 11 алгоритмам</p>
+            
+            <form id="calc-form">
+                <label>Метод расчета</label>
+                <select id="calc-method">
+                    <option value="fixed">Штучно (Фикс. цена)</option>
+                    <option value="area_cm2">Площадь (Дерево/Шильды)</option>
+                    <option value="meter_thickness">Метры реза (Фанера/Акрил)</option>
+                    <option value="per_minute">Поминутно (MOPA/JPT)</option>
+                </select>
+
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label>Базовая ставка (₽)</label>
+                        <input type="number" id="calc-base-price" required>
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Количество (шт)</label>
+                        <input type="number" id="calc-qty" value="1" required>
+                    </div>
+                </div>
+
+                <div id="calc-dynamic-inputs">
+                    <!-- Дополнительные инпуты будут появляться здесь через JS в зависимости от метода -->
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="calc-urgent" style="width: auto; margin: 0;"> 
+                        Срочный заказ (+50% к цене)
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%;">Рассчитать стоимость</button>
+            </form>
+            
+            <div style="margin-top: 20px; text-align: center; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                <h3 style="color: var(--text-secondary);">Итоговая цена:</h3>
+                <div id="calc-result" style="font-size: 32px; font-weight: bold; color: var(--success-color);">0 ₽</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключение логики приложения -->
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
