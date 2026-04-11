@@ -2,7 +2,8 @@ import logging
 import json
 from django.core.management.base import BaseCommand
 from vk_api.utils import get_random_id
-from bot.vk_client import vk, longpoll, VkEventType
+from bot.vk_client import vk, longpoll
+from vk_api.longpoll import VkEventType
 from bot.models import Client, Order, PriceListItem, Setting, ChatMessage
 from bot.calculator import calculate_price
 from bot.fsm import get_user_state, set_user_state, clear_user_state
