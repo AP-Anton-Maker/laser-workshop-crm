@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: gunicorn laser_crm.wsgi:application --bind 0.0.0.0:8000 --workers 2
+    volumes:
+      - crm_data:/app/data
+    ports:
+      - "8000:8000"
+    restart: always
+
+  bot:
+    build: .
+    command: python manage.py run_bot
+    depends_on:
+      - web
+    volumes:
+      - crm_data:/app/data
+    restart: always
+
+volumes:
+  crm_data:
