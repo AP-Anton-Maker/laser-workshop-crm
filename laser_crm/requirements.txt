@@ -1,6 +1,0 @@
-Django>=4.2
-vk-api
-bcrypt
-requests
-python-dotenv
-gunicorn
