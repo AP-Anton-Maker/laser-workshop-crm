@@ -29,10 +29,8 @@ def get_setting(key):
 
 def get_main_keyboard():
     buttons = [
-        [{'label': '📋 Каталог', 'color': 'primary'}],
-        [{'label': '🧮 Рассчитать', 'color': 'primary'}],
-        [{'label': '💰 Баланс', 'color': 'primary'}],
-        [{'label': '📞 Связаться с мастером', 'color': 'secondary'}],
+        [{'label': '📋 Каталог', 'color': 'primary'}, {'label': '🧮 Рассчитать', 'color': 'primary'}],
+        [{'label': '💰 Баланс', 'color': 'primary'}, {'label': '📞 Связаться с мастером', 'color': 'secondary'}],
         [{'label': '❓ Помощь', 'color': 'secondary'}]
     ]
     return create_regular_keyboard(buttons, one_time=False)
