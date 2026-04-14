@@ -1,5 +1,6 @@
 import logging
 import json
+import re  # ИСПРАВЛЕНО: добавлена библиотека для работы с текстом
 from django.core.management.base import BaseCommand
 from vk_api.utils import get_random_id
 from bot.vk_client import vk, longpoll
@@ -8,14 +9,12 @@ from bot.models import Client, Order, PriceListItem, Setting, ChatMessage
 from bot.calculator import calculate_price
 from bot.fsm import get_user_state, set_user_state, clear_user_state
 from bot.keyboards import create_inline_keyboard, create_regular_keyboard
-from django.core.management.base import BaseCommand
 
 logger = logging.getLogger(__name__)
 
 def send_vk_message(user_id, text, keyboard=None):
     vk.messages.send(user_id=user_id, message=text, random_id=get_random_id(), keyboard=keyboard)
 
-# ИСПРАВЛЕНО: Оптимизировано получение клиента без спама к API VK
 def get_or_create_client(vk_id):
     client, created = Client.objects.get_or_create(vk_id=vk_id)
     if created or not client.name:
@@ -53,21 +52,21 @@ class Command(BaseCommand):
         logger.info("✅ Умный помощник запущен")
         for event in longpoll.listen():
             try:
+                # ИСПРАВЛЕНО: Безопасная проверка типов событий для сообщений и кнопок
+                event_type_str = getattr(event.type, 'name', str(event.type)).lower()
+                
                 if event.type == VkEventType.MESSAGE_NEW and event.to_me:
                     self.handle_message(event)
-                elif event.type == VkEventType.MESSAGE_EVENT:
+                elif event_type_str == 'message_event':
                     self.handle_callback(event)
             except Exception as e:
                 logger.error(f"Ошибка: {e}", exc_info=True)
 
     def handle_message(self, event):
         user_id = event.user_id
-        
-        # Оригинальный текст со знаками препинания для сохранения в БД
         original_text = (event.text or '').strip()
         
-        # Очищаем текст от знаков препинания для распознавания команд
-        # 'Привет!!!' превратится в 'привет'
+        # Теперь re.sub будет работать отлично
         text = re.sub(r'[^\w\s]', '', original_text).lower().strip()
         
         client = get_or_create_client(user_id)
@@ -78,7 +77,6 @@ class Command(BaseCommand):
             send_vk_message(user_id, msg)
             return
 
-        # Сохраняем сообщение в оригинальном регистре
         ChatMessage.objects.create(client=client, vk_id=user_id, message_text=original_text, is_admin=False)
 
         if text in ['привет', 'начать']:
@@ -92,7 +90,7 @@ class Command(BaseCommand):
             else:
                 reply = "Услуги временно не добавлены. Напиши мастеру."
             send_vk_message(user_id, reply)
-            clear_user_state(user_id) # Сбрасываем стейты при вызове глобальных меню
+            clear_user_state(user_id)
         elif text == 'баланс':
             send_vk_message(user_id, f"💰 Твой кэшбэк: {client.cashback_balance:.2f}₽")
             clear_user_state(user_id)
@@ -122,7 +120,6 @@ class Command(BaseCommand):
                     return
                 params = data.get('params', {})
                 
-                # ИСПРАВЛЕНО: Меняем запятые на точки для защиты от ошибок float
                 parts = text.replace(',', '.').split()
                 calc_type = service['calc_type']
                 
@@ -234,16 +231,13 @@ class Command(BaseCommand):
                     send_vk_message(user_id, "Выбери действие:", keyboard=keyboard)
             
             elif state == 'waiting_for_master':
-                # ИСПРАВЛЕНО: Даем возможность выйти из режима связи с мастером
                 if text == 'отмена':
                     clear_user_state(user_id)
                     keyboard = get_main_keyboard()
                     send_vk_message(user_id, "Режим диалога завершен. Чем ещё помочь?", keyboard=keyboard)
                 else:
-                    # Сообщение уже сохранилось в БД выше, ничего делать не нужно, кроме ответа
                     send_vk_message(user_id, "Сообщение передано мастеру. (Для выхода напиши «отмена»)")
             else:
-                # Если клиент написал случайный текст, выводим кнопки и успокаиваем его
                 keyboard = get_main_keyboard()
                 send_vk_message(
                     user_id, 
@@ -256,7 +250,6 @@ class Command(BaseCommand):
     def handle_callback(self, event):
         user_id = event.user_id
         
-        # ИСПРАВЛЕНО: ОБЯЗАТЕЛЬНО отправляем подтверждение ВК, чтобы кнопка не зависала (колесико загрузки)
         try:
             vk.messages.sendMessageEventAnswer(
                 event_id=event.event_id,
