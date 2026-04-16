@@ -1,25 +1,11 @@
 services:
-  web:
+  app:
     build: .
-    command: gunicorn laser_crm.wsgi:application --bind 0.0.0.0:8000 --workers 2
+    restart: unless-stopped
     env_file:
       - .env
     volumes:
-      - crm_data:/app/data
+      # Пробрасываем папку data внутрь, чтобы БД и фото сохранялись на SD-карте
+      - ./data:/app/data
     ports:
       - "8000:8000"
-    restart: always
-
-  bot:
-    build: .
-    command: python manage.py run_bot
-    env_file:
-      - .env
-    depends_on:
-      - web
-    volumes:
-      - crm_data:/app/data
-    restart: always
-
-volumes:
-  crm_data:
