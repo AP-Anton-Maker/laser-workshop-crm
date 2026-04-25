@@ -91,9 +91,9 @@ MEDIA_ROOT = BASE_DIR / "data" / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # НАСТРОЙКИ НАШЕГО БОТА ВК
-VK_API_TOKEN = os.getenv('VK_API_TOKEN')
+VK_TOKEN = os.getenv('VK_TOKEN')
 VK_GROUP_ID = os.getenv('VK_GROUP_ID')
-ADMIN_VK_ID = os.getenv('ADMIN_VK_ID')
+VK_ADMIN_ID = os.getenv('VK_ADMIN_ID')
 VK_CONFIRMATION_CODE = os.getenv('VK_CONFIRMATION_CODE', '')
 
 # НАСТРОЙКА КРАСИВОЙ АДМИНКИ UNFOLD
