@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.10-slim
 
 WORKDIR /app
 
@@ -10,6 +10,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN python manage.py collectstatic --noinput
+RUN chmod +x entrypoint.sh
 
 EXPOSE 8000
+
+ENTRYPOINT ["./entrypoint.sh"]

@@ -1,11 +1,19 @@
 services:
-  app:
+  web:
     build: .
     restart: unless-stopped
     env_file:
       - .env
     volumes:
-      # Пробрасываем папку data внутрь, чтобы БД и фото сохранялись на SD-карте
       - ./data:/app/data
+    command: ./entrypoint.sh
+
+  caddy:
+    image: caddy:alpine
+    restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./data:/app/data
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile

@@ -3,11 +3,8 @@
 # Применяем изменения в базе данных
 python manage.py migrate --noinput
 
-# Собираем красивые стили для админки Unfold
+# Собираем статические файлы для админки и Caddy
 python manage.py collectstatic --noinput
 
-# Запускаем WEB-сервер админки в фоновом режиме (на 2 рабочих процесса, бережем ОЗУ)
-gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 &
-
-# Запускаем нашего бота ВК на переднем плане
-python manage.py run_bot
+# Запускаем WEB-сервер (Gunicorn) на переднем плане
+exec gunicorn config.wsgi --workers 2 --threads 4 -b 0.0.0.0:8000

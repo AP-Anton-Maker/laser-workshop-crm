@@ -1,11 +1,42 @@
-# Скрытые файлы
+```
+# Environment variables
 .env
+.env.local
+.env.*
+
+# Dependencies
+.venv/
+venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
-# Виртуальное окружение
-venv/
-env/
+# Build artifacts
+dist/
+build/
+*.egg-info/
 
-# Данные (не добавляем БД и медиафайлы в код)
-data/
+# Logs
+*.log
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+.coverage
+coverage/
+htmlcov/
+
+# Python cache
+.mypy_cache/
+.pytest_cache/
+```

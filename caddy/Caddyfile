@@ -1,0 +1,29 @@
+{
+    $domain = env('DOMAIN', 'localhost')
+}
+
+{$domain}:80 {
+    reverse_proxy web:8000
+    
+    file_server /static/* {
+        root /app/data/static
+    }
+    
+    file_server /media/* {
+        root /app/data/media
+    }
+}
+
+{$domain}:443 {
+    tls internal
+    
+    reverse_proxy web:8000
+    
+    file_server /static/* {
+        root /app/data/static
+    }
+    
+    file_server /media/* {
+        root /app/data/media
+    }
+}
