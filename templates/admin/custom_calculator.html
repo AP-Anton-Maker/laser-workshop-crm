@@ -1,0 +1,94 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const materialSelect = document.getElementById('material-select');
+        const lengthInput = document.getElementById('length-input');
+        const resultDisplay = document.getElementById('result-display');
+        
+        // Данные о ценах материалов (передаются из Django)
+        const prices = {{ prices_json|safe }};
+
+        function calculate() {
+            const selectedMaterialId = materialSelect.value;
+            const length = parseFloat(lengthInput.value);
+            
+            if (!selectedMaterialId || isNaN(length) || length <= 0) {
+                resultDisplay.textContent = '0 ₽';
+                resultDisplay.classList.add('text-gray-400');
+                resultDisplay.classList.remove('text-green-600', 'font-bold');
+                return;
+            }
+
+            const pricePerMeter = parseFloat(prices[selectedMaterialId]);
+            if (!pricePerMeter) return;
+
+            const total = pricePerMeter * length;
+            
+            // Форматирование числа с пробелами (например: 1 200)
+            const formattedTotal = new Intl.NumberFormat('ru-RU').format(total.toFixed(2));
+            
+            resultDisplay.textContent = `${formattedTotal} ₽`;
+            resultDisplay.classList.remove('text-gray-400');
+            resultDisplay.classList.add('text-green-600', 'font-bold');
+        }
+
+        materialSelect.addEventListener('change', calculate);
+        lengthInput.addEventListener('input', calculate);
+    });
+</script>
+<style>
+    @media print {
+        body { background: white; }
+        .no-print { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-6">
+    <div class="bg-white rounded-lg shadow-lg p-8 border border-gray-200">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-4">🧮 Калькулятор стоимости реза</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Форма -->
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Выберите материал</label>
+                    <select id="material-select" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                        <option value="">-- Выберите из списка --</option>
+                        {% for material in materials %}
+                            <option value="{{ material.id }}" data-price="{{ material.price_per_meter }}">
+                                {{ material.name }} ({{ material.price_per_meter }} ₽/м)
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Длина реза (метров)</label>
+                    <input type="number" id="length-input" step="0.01" min="0" placeholder="Например: 2.5" 
+                           class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                </div>
+            </div>
+
+            <!-- Результат -->
+            <div class="flex flex-col justify-center items-center bg-gray-50 rounded-lg p-6 border border-gray-100">
+                <span class="text-gray-500 text-sm uppercase tracking-wide mb-2">Итоговая стоимость</span>
+                <div id="result-display" class="text-5xl text-gray-400 transition-all duration-300">0 ₽</div>
+                <p class="text-xs text-gray-400 mt-4">* Стоимость является предварительной.</p>
+            </div>
+        </div>
+        
+        <div class="mt-8 pt-6 border-t flex justify-end no-print">
+            <button onclick="window.print()" class="bg-gray-800 hover:bg-gray-900 text-white px-6 py-2 rounded-md transition">
+                🖨️ Распечатать расчет
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
