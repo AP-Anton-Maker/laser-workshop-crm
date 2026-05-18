@@ -76,16 +76,16 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': DATA_DIR / 'db.sqlite3',
-        'OPTIONS': {
-            'init_command': (
-                "PRAGMA journal_mode=WAL; "
-                "PRAGMA synchronous=NORMAL; "
-                "PRAGMA cache_size=-64000;"
-            ),
-        },
         'ATOMIC_REQUESTS': True,
     }
 }
+
+# SQLite options for WAL mode (applied via signals)
+SQLITE_PRAGMAS = [
+    "PRAGMA journal_mode=WAL",
+    "PRAGMA synchronous=NORMAL",
+    "PRAGMA cache_size=-64000",
+]
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
