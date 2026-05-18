@@ -1,0 +1,9 @@
+Django==4.2.11
+gunicorn==21.2.0
+django-unfold==0.25.0
+vk-api==11.9.9
+requests==2.31.0
+Pillow==10.2.0
+WeasyPrint==60.2
+python-dotenv==1.0.1
+django-axes==6.1.1

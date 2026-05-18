@@ -1,0 +1,28 @@
+[Unit]
+Description=Anton Maker CRM Gunicorn Service
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/opt/anton_maker
+ExecStart=/opt/anton_maker/venv/bin/gunicorn \
+    --workers 2 \
+    --threads 4 \
+    --worker-class gthread \
+    --bind unix:/run/anton/gunicorn.sock \
+    --timeout 30 \
+    --reload \
+    config.wsgi:application
+
+Restart=on-failure
+RestartSec=5
+
+Environment="DJANGO_SETTINGS_MODULE=config.settings"
+Environment="PATH=/opt/anton_maker/venv/bin"
+
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
