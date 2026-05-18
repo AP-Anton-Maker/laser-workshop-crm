@@ -1,4 +1,14 @@
-# Core
+Django==4.2.11
+gunicorn==21.2.0
+django-unfold==0.25.0
+vk-api==11.9.9
+requests==2.31.0
+Pillow==10.2.0
+WeasyPrint==60.2
+python-dotenv==1.0.1
+argon2-cffi==23.1.0
+qrcode[pil]==7.4.2
+django-prometheus==2.3.1# Core
 Django==4.2.11
 gunicorn==21.2.0
 
