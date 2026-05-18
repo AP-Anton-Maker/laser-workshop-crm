@@ -1,6 +1,0 @@
-Django>=4.2,<5.0
-django-unfold>=0.20.0
-vk-api>=11.9.9
-gunicorn>=21.2.0
-python-dotenv>=1.0.0
-requests>=2.31.0
