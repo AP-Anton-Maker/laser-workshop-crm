@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .form-group { margin-bottom: 20px; }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        select, input[type="number"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .form-row > div { flex: 1; }
+        
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        
+        .checkbox-label:hover { background: #e9ecef; }
+        
+        .checkbox-label input {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+        }
+        
+        .btn-calculate {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .results {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            display: none;
+        }
+        
+        .results h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+        
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed #ccc;
+        }
+        
+        .breakdown-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            margin-top: 15px;
+            border-top: 2px solid #667eea;
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .disclaimer {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        @media (max-width: 600px) {
+            .form-row { flex-direction: column; gap: 10px; }
+            .container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧮 Калькулятор стоимости</h1>
+        <p class="subtitle">Рассчитайте стоимость лазерной обработки онлайн</p>
+        
+        <form id="calc-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="material">Выберите материал:</label>
+                <select id="material" required>
+                    <option value="">-- Выберите --</option>
+                    {% for mat in materials %}
+                    <option value="{{ mat.id }}">
+                        {{ mat.icon }} {{ mat.name }} — {{ mat.price_per_unit }} ₽/{{ mat.unit }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="length">Длина (мм):</label>
+                    <input type="number" id="length" min="1" step="0.1" required placeholder="100">
+                </div>
+                <div class="form-group">
+                    <label for="width">Ширина (мм):</label>
+                    <input type="number" id="width" min="1" step="0.1" required placeholder="100">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="quantity">Количество (шт):</label>
+                <input type="number" id="quantity" min="1" value="1" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Дополнительно:</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="is_urgent">
+                        ⚡ Срочный заказ (+50%)
+                    </label>
+                    {% for option in service_options %}
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="services" value="{{ option.id }}">
+                        {{ option.icon }} {{ option.name }} 
+                        ({% if option.price_type == 'fixed' %}+{{ option.price_value }}₽{% else %}+{{ option.price_value }}%{% endif %})
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-calculate">🧮 Рассчитать стоимость</button>
+        </form>
+        
+        <div id="results" class="results">
+            <h2>📊 Результат расчета</h2>
+            
+            <div class="breakdown-item">
+                <span>Материал:</span>
+                <strong><span id="res-material">0</span> ₽</strong>
+            </div>
+            <div class="breakdown-item">
+                <span>Работа:</span>
+                <strong><span id="res-labor">0</span> ₽</strong>
+            </div>
+            <div class="breakdown-item">
+                <span>Накладные:</span>
+                <strong><span id="res-overhead">0</span> ₽</strong>
+            </div>
+            <div class="breakdown-item">
+                <span>Резерв на брак:</span>
+                <strong><span id="res-defect">0</span> ₽</strong>
+            </div>
+            
+            <div class="breakdown-total">
+                <span>ИТОГО:</span>
+                <span><span id="res-total">0</span> ₽</span>
+            </div>
+            
+            <div id="min-order-warning" class="warning" style="display: none;">
+                ⚠️ Применена минимальная стоимость заказа: {{ calc_settings.min_order_amount }} ₽
+            </div>
+        </div>
+        
+        <div class="disclaimer">
+            {{ calc_settings.disclaimer|linebreaksbr }}
+        </div>
+    </div>
+    
+    <script>
+    document.getElementById('calc-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const data = {
+            material_id: document.getElementById('material').value,
+            length: document.getElementById('length').value,
+            width: document.getElementById('width').value,
+            quantity: parseInt(document.getElementById('quantity').value) || 1,
+            is_urgent: document.getElementById('is_urgent').checked,
+            services: Array.from(formData.getAll('services')).map(Number)
+        };
+        
+        fetch('{% url "crm:public_calculator" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                document.getElementById('res-material').textContent = parseFloat(result.breakdown.material_cost).toLocaleString();
+                document.getElementById('res-labor').textContent = parseFloat(result.breakdown.labor_cost).toLocaleString();
+                document.getElementById('res-overhead').textContent = parseFloat(result.breakdown.overhead).toLocaleString();
+                document.getElementById('res-defect').textContent = parseFloat(result.breakdown.defect_reserve).toLocaleString();
+                document.getElementById('res-total').textContent = parseFloat(result.breakdown.retail_price).toLocaleString();
+                
+                document.getElementById('min-order-warning').style.display = result.breakdown.is_min_order ? 'block' : 'none';
+                document.getElementById('results').style.display = 'block';
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+            } else {
+                alert('Ошибка расчета: ' + result.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка при расчете');
+        });
+    });
+    </script>
+</body>
+</html>
