@@ -1,0 +1,17 @@
+# Пример CRON-задач для Anton Maker CRM
+# Добавить через: crontab -e
+
+# Ежедневный отчет в ВК (утром в 9:00)
+0 9 * * * cd /opt/anton-maker && source venv/bin/activate && python manage.py daily_report >> /var/log/anton-maker/daily_report.log 2>&1
+
+# Еженедельный отчет (понедельник в 10:00)
+0 10 * * 1 cd /opt/anton-maker && source venv/bin/activate && python manage.py weekly_report >> /var/log/anton-maker/weekly_report.log 2>&1
+
+# Проверка остатков материалов (раз в час)
+0 * * * * cd /opt/anton-maker && source venv/bin/activate && python manage.py check_stock >> /var/log/anton-maker/check_stock.log 2>&1
+
+# Резервное копирование БД (ежедневно в 3:00)
+0 3 * * * /opt/anton-maker/deploy/backup_db.sh >> /var/log/anton-maker/backup.log 2>&1
+
+# Очистка старых временных файлов (воскресенье в 2:00)
+0 2 * * 0 find /opt/anton-maker/data/media -name "*.tmp" -mtime +7 -delete
