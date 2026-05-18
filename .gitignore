@@ -1,75 +1,40 @@
 ```
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual Environment
-venv/
-ENV/
-env/
+# Dependencies
 .venv/
-env.bak/
-.ENV/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# Django
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs and temporary files
 *.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-media/
-staticfiles/
-.env
+*.tmp
+*.swp
 
-# IDE
+# Environment files
+.env
+.env.local
+*.env.*
+
+# Editors
 .vscode/
 .idea/
-*.swp
-*.swo
-*.tmp
 
-# OS
+# OS generated files
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
-
-# Coverage
+# Coverage reports
 .coverage
 htmlcov/
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
+coverage/
 
-# Environment
-.env
-.env.local
-.env.*
-
-# Dependencies
-node_modules/
+# MyPy cache
 .mypy_cache/
-.pytest_cache/
-.tox/
 ```
