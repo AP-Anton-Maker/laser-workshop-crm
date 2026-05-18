@@ -1,0 +1,11 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block site_title %}Anton Maker CRM{% endblock %}
+{% block site_header %}Производство | Anton Maker{% endblock %}
+
+{% block nav-global %}
+    <a href="{% url 'crm:admin_calculator' %}" class="button">
+        🧮 Калькулятор
+    </a>
+{% endblock %}

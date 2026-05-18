@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Маршрутный лист #{{ order.order_number }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: "DejaVu Sans", "Arial", sans-serif;
+            font-size: 10pt;
+            line-height: 1.4;
+            color: #000;
+        }
+        
+        .ticket {
+            border: 2px solid #000;
+            padding: 15px;
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .company-name {
+            font-size: 16pt;
+            font-weight: bold;
+        }
+        
+        .order-number {
+            font-size: 14pt;
+            font-weight: bold;
+        }
+        
+        .section {
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            background: #eee;
+            padding: 3px 8px;
+            margin-bottom: 5px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        
+        .description {
+            background: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            min-height: 60px;
+        }
+        
+        .status-box {
+            display: inline-block;
+            padding: 5px 15px;
+            border: 2px solid #000;
+            font-weight: bold;
+        }
+        
+        .footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #000;
+            font-size: 8pt;
+            text-align: center;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: left;
+        }
+        
+        th {
+            background: #eee;
+        }
+        
+        .signature-line {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .signature-box {
+            width: 45%;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    {% if orders %}
+        <!-- Несколько заказов на одной странице -->
+        {% for order in orders %}
+        <div class="ticket">
+            <div class="header">
+                <div class="company-name">{{ company_name }}</div>
+                <div class="order-number">#{{ order.order_number }}</div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Основная информация</div>
+                <div class="info-grid">
+                    <div class="info-row">
+                        <span>Клиент:</span>
+                        <strong>{{ order.client.full_name }}</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>VK ID:</span>
+                        <strong>{{ order.client.vk_id }}</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Статус:</span>
+                        <span class="status-box">{{ order.get_status_display }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Срочность:</span>
+                        <strong>{{ order.get_urgency_display }}</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Техническое задание</div>
+                <div class="description">{{ order.description }}</div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Параметры изделия</div>
+                <table>
+                    <tr>
+                        <th>Материал</th>
+                        <td>{{ order.material|default:"—" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Размеры</th>
+                        <td>{{ order.get_dimensions_str }}</td>
+                    </tr>
+                    <tr>
+                        <th>Количество</th>
+                        <td>{{ order.quantity }} шт.</td>
+                    </tr>
+                    <tr>
+                        <th>Площадь</th>
+                        <td>{{ order.get_area_cm2|default:"—" }} см²</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Стоимость</div>
+                <div class="info-grid">
+                    <div class="info-row">
+                        <span>Расчетная:</span>
+                        <strong>{{ order.calculated_price|default:"—" }} ₽</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Итоговая:</span>
+                        <strong>{{ order.final_price|default:"—" }} ₽</strong>
+                    </div>
+                </div>
+            </div>
+            
+            {% if order.notes or order.internal_notes %}
+            <div class="section">
+                <div class="section-title">Заметки</div>
+                {% if order.notes %}<p><strong>Для клиента:</strong> {{ order.notes }}</p>{% endif %}
+                {% if order.internal_notes %}<p><strong>Внутренние:</strong> {{ order.internal_notes }}</p>{% endif %}
+            </div>
+            {% endif %}
+            
+            <div class="signature-line">
+                <div class="signature-box">Мастер: _________________</div>
+                <div class="signature-box">Дата: _________________</div>
+            </div>
+        </div>
+        {% endfor %}
+    {% elif order %}
+        <!-- Один заказ -->
+        <div class="ticket">
+            <div class="header">
+                <div class="company-name">{{ company_name }}</div>
+                <div class="order-number">#{{ order.order_number }}</div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Основная информация</div>
+                <div class="info-grid">
+                    <div class="info-row">
+                        <span>Клиент:</span>
+                        <strong>{{ order.client.full_name }}</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>VK ID:</span>
+                        <strong>{{ order.client.vk_id }}</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Статус:</span>
+                        <span class="status-box">{{ order.get_status_display }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Срочность:</span>
+                        <strong>{{ order.get_urgency_display }}</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Дата создания:</span>
+                        <strong>{{ order.created_at|date:"d.m.Y H:i" }}</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Дата печати:</span>
+                        <strong>{{ generated_at|date:"d.m.Y H:i" }}</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Техническое задание</div>
+                <div class="description">{{ order.description }}</div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Параметры изделия</div>
+                <table>
+                    <tr>
+                        <th>Материал</th>
+                        <td>{{ order.material|default:"—" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Размеры</th>
+                        <td>{{ order.get_dimensions_str }}</td>
+                    </tr>
+                    <tr>
+                        <th>Количество</th>
+                        <td>{{ order.quantity }} шт.</td>
+                    </tr>
+                    <tr>
+                        <th>Площадь</th>
+                        <td>{{ order.get_area_cm2|default:"—" }} см²</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Стоимость</div>
+                <div class="info-grid">
+                    <div class="info-row">
+                        <span>Расчетная:</span>
+                        <strong>{{ order.calculated_price|default:"—" }} ₽</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Итоговая:</span>
+                        <strong>{{ order.final_price|default:"—" }} ₽</strong>
+                    </div>
+                </div>
+            </div>
+            
+            {% if order.notes or order.internal_notes %}
+            <div class="section">
+                <div class="section-title">Заметки</div>
+                {% if order.notes %}<p><strong>Для клиента:</strong> {{ order.notes }}</p>{% endif %}
+                {% if order.internal_notes %}<p><strong>Внутренние:</strong> {{ order.internal_notes }}</p>{% endif %}
+            </div>
+            {% endif %}
+            
+            <div class="signature-line">
+                <div class="signature-box">Мастер: _________________</div>
+                <div class="signature-box">Дата: _________________</div>
+            </div>
+        </div>
+    {% endif %}
+    
+    <div class="footer">
+        {{ company_contact }} | Сгенерировано: {{ generated_at|date:"d.m.Y H:i" }}
+    </div>
+</body>
+</html>
