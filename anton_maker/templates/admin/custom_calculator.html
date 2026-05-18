@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор - Anton Maker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-4xl mx-auto p-6">
+        <h1 class="text-2xl font-bold mb-6 text-gray-800">🧮 Калькулятор стоимости</h1>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Материал</label>
+                    <select id="material" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        {% for material in materials %}
+                        <option value="{{ material.price_per_unit }}" data-name="{{ material.name }}">
+                            {{ material.name }} - {{ material.price_per_unit }} ₽/мм
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Длина реза (мм)</label>
+                    <input type="number" id="length" value="100" min="1" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+            </div>
+            
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <div class="flex justify-between items-center">
+                    <span class="text-lg font-medium text-gray-700">Итоговая стоимость:</span>
+                    <span id="total" class="text-3xl font-bold text-blue-600">0 ₽</span>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-sm text-gray-500">
+                <p>✓ Минимальный заказ: 500 ₽</p>
+                <p>✓ Наценка включена в расчет</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const materialSelect = document.getElementById('material');
+        const lengthInput = document.getElementById('length');
+        const totalSpan = document.getElementById('total');
+        
+        function calculate() {
+            const pricePerUnit = parseFloat(materialSelect.value) || 0;
+            const length = parseFloat(lengthInput.value) || 0;
+            const minOrder = 500;
+            const markup = 1.2;
+            
+            let total = length * pricePerUnit * markup;
+            if (total < minOrder) total = minOrder;
+            
+            totalSpan.textContent = total.toFixed(2) + ' ₽';
+        }
+        
+        materialSelect.addEventListener('change', calculate);
+        lengthInput.addEventListener('input', calculate);
+        
+        calculate();
+    </script>
+</body>
+</html>
