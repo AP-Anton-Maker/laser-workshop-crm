@@ -17,5 +17,8 @@ WeasyPrint==60.2
 python-dotenv==1.0.1
 argon2-cffi==23.1.0
 
+# QR Codes
+qrcode[pil]==7.4.2
+
 # Monitoring (lightweight)
 django-prometheus==2.3.1
