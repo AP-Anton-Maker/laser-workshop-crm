@@ -110,8 +110,8 @@ bash deploy/install.sh
 ## 📞 Поддержка
 
 Для вопросов и поддержки обращайтесь:
-- Email: support@anton-maker.ru
-- ВКонтакте: https://vk.com/antonmaker
+- Email: ap@anton-maker.ru
+- ВКонтакте: https://vk.com/anton.maker
 
 ---
 © 2026 Anton Maker. Все права защищены.
